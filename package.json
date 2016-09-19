@@ -1,0 +1,56 @@
+{
+  "name": "pg-query-deparser",
+  "version": "0.0.1",
+  "description": "Format PostgreSQL Queries from AST",
+  "homepage": "http://github.com/zhm/pg-query-deparser",
+  "main": "dist/index.js",
+  "scripts": {
+    "prepublish": "npm run lint && npm run clean && npm run build",
+    "lint": "node_modules/.bin/eslint src/* src/**/*",
+    "build": "node_modules/.bin/babel src --out-dir dist --source-maps",
+    "watch": "node_modules/.bin/babel src --out-dir dist --source-maps --watch",
+    "clean": "rm -rf dist",
+    "check-deps": "node_modules/.bin/ncu",
+    "update-deps": "node_modules/.bin/ncu -u"
+  },
+  "author": "Zac McCormick <zac.mccormick@gmail.com> (http://github.com/zhm)",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/zhm/pg-query-deparser.git"
+  },
+  "eslintConfig": {
+    "extends": "fulcrum"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.9.0",
+    "babel-core": "^6.9.1",
+    "babel-eslint": "^6.0.4",
+    "babel-preset-es2015-node5": "^1.2.0",
+    "babel-preset-stage-1": "^6.5.0",
+    "browserify": "^13.0.1",
+    "chai": "^3.5.0",
+    "eslint": "^2.11.1",
+    "eslint-config-fulcrum": "^1.0.2",
+    "eslint-plugin-babel": "^3.3.0",
+    "eslint-plugin-react": "^5.1.1",
+    "glob": "^7.0.3",
+    "mocha": "^2.5.3",
+    "npm-check-updates": "^2.6.5",
+    "source-map-support": "^0.4.0",
+    "uglify-js": "^2.6.2",
+    "watch-cli": "^0.2.1",
+    "watchify": "^3.7.0"
+  },
+  "dependencies": {
+    "lodash": "^4.13.1"
+  },
+  "keywords": [
+    "sql",
+    "postgres",
+    "postgresql",
+    "pg",
+    "query",
+    "database"
+  ]
+}
