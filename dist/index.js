@@ -1,10 +1,6 @@
 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+exports.__esModule = true;
 
 var _lodash = require('lodash');
 
@@ -14,11 +10,13 @@ var _util = require('util');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const keys = _lodash2.default.keys;
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var keys = _lodash2.default.keys;
 
 
-const compact = o => {
-  return _lodash2.default.filter(_lodash2.default.compact(o), p => {
+var compact = function compact(o) {
+  return _lodash2.default.filter(_lodash2.default.compact(o), function (p) {
     if (p == null) {
       return false;
     }
@@ -27,64 +25,80 @@ const compact = o => {
   });
 };
 
-const fail = (type, node) => {
+var fail = function fail(type, node) {
   throw new Error((0, _util.format)('Unhandled %s node: %s', type, JSON.stringify(node)));
 };
 
-const parens = string => {
+var parens = function parens(string) {
   return '(' + string + ')';
 };
 
-const indent = function indent(text) {
-  let count = arguments.length <= 1 || arguments[1] === undefined ? 1 : arguments[1];
+var indent = function indent(text) {
+  var count = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
   return text;
 };
 
-class Deparser {
-  static deparse(query) {
+var Deparser = function () {
+  Deparser.deparse = function deparse(query) {
     return new Deparser(query).deparseQuery();
-  }
+  };
 
-  constructor(tree) {
+  function Deparser(tree) {
+    _classCallCheck(this, Deparser);
+
     this.tree = tree;
   }
 
-  deparseQuery() {
-    return this.tree.map(node => this.deparse(node)).join('\n\n');
-  }
+  Deparser.prototype.deparseQuery = function deparseQuery() {
+    var _this = this;
 
-  deparseNodes(nodes) {
-    return nodes.map(node => this.deparse(node));
-  }
+    return this.tree.map(function (node) {
+      return _this.deparse(node);
+    }).join('\n\n');
+  };
 
-  list(nodes) {
-    let separator = arguments.length <= 1 || arguments[1] === undefined ? ', ' : arguments[1];
+  Deparser.prototype.deparseNodes = function deparseNodes(nodes) {
+    var _this2 = this;
+
+    return nodes.map(function (node) {
+      return _this2.deparse(node);
+    });
+  };
+
+  Deparser.prototype.list = function list(nodes) {
+    var separator = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ', ';
 
     if (!nodes) {
       return '';
     }
 
     return this.deparseNodes(nodes).join(separator);
-  }
+  };
 
-  quote(value) {
+  Deparser.prototype.quote = function quote(value) {
+    var _this3 = this;
+
     if (value == null) {
       return null;
     }
 
     if (_lodash2.default.isArray(value)) {
-      return value.map(o => this.quote(o));
+      return value.map(function (o) {
+        return _this3.quote(o);
+      });
     }
 
     return '"' + value + '"';
-  }
+  };
 
   // SELECT encode(E'''123\\000\\001', 'base64')
-  escape(literal) {
-    return "'" + literal.replace(/'/g, "''") + "'";
-  }
 
-  convertTypeName(typeName, size) {
+
+  Deparser.prototype.escape = function escape(literal) {
+    return "'" + literal.replace(/'/g, "''") + "'";
+  };
+
+  Deparser.prototype.convertTypeName = function convertTypeName(typeName, size) {
     switch (typeName) {
       case 'bpchar':
         if (size != null) {
@@ -129,18 +143,20 @@ class Deparser {
       default:
         throw new Error((0, _util.format)('Unhandled data type: %s', typeName));
     }
-  }
+  };
 
-  type(names, args) {
-    var _names$map = names.map(name => this.deparse(name));
+  Deparser.prototype.type = function type(names, args) {
+    var _this4 = this;
 
-    var _names$map2 = _slicedToArray(_names$map, 2);
+    var _names$map = names.map(function (name) {
+      return _this4.deparse(name);
+    });
 
-    const catalog = _names$map2[0];
-    const type = _names$map2[1];
+    var catalog = _names$map[0];
+    var type = _names$map[1];
 
 
-    const mods = (name, size) => {
+    var mods = function mods(name, size) {
       if (size != null) {
         return name + '(' + size + ')';
       }
@@ -157,12 +173,12 @@ class Deparser {
       return mods(this.list(names, '.'), args);
     }
 
-    const res = this.convertTypeName(type, args);
+    var res = this.convertTypeName(type, args);
 
     return mods(res, args);
-  }
+  };
 
-  deparse(item, context) {
+  Deparser.prototype.deparse = function deparse(item, context) {
     if (item == null) {
       return null;
     }
@@ -171,18 +187,18 @@ class Deparser {
       return item;
     }
 
-    const type = keys(item)[0];
-    const node = _lodash2.default.values(item)[0];
+    var type = keys(item)[0];
+    var node = _lodash2.default.values(item)[0];
 
     if (this[type] == null) {
       throw new Error(type + ' is not implemented');
     }
 
     return this[type](node, context);
-  }
+  };
 
-  ['A_Expr'](node, context) {
-    const output = [];
+  Deparser.prototype['A_Expr'] = function A_Expr(node, context) {
+    var output = [];
 
     switch (node.kind) {
       case 0:
@@ -192,9 +208,9 @@ class Deparser {
         }
 
         if (node.name.length > 1) {
-          const schema = this.deparse(node.name[0]);
-          const operator = this.deparse(node.name[1]);
-          output.push(`OPERATOR(${ schema }.${ operator })`);
+          var schema = this.deparse(node.name[0]);
+          var operator = this.deparse(node.name[1]);
+          output.push('OPERATOR(' + schema + '.' + operator + ')');
         } else {
           output.push(this.deparse(node.name[0]));
         }
@@ -213,13 +229,13 @@ class Deparser {
         // AEXPR_OP_ANY
         output.push(this.deparse(node.lexpr));
         output.push((0, _util.format)('ANY (%s)', this.deparse(node.rexpr)));
-        return output.join(` ${ this.deparse(node.name[0]) } `);
+        return output.join(' ' + this.deparse(node.name[0]) + ' ');
 
       case 2:
         // AEXPR_OP_ALL
         output.push(this.deparse(node.lexpr));
         output.push((0, _util.format)('ALL (%s)', this.deparse(node.rexpr)));
-        return output.join(` ${ this.deparse(node.name[0]) } `);
+        return output.join(' ' + this.deparse(node.name[0]) + ' ');
 
       case 3:
         // AEXPR_DISTINCT
@@ -232,16 +248,16 @@ class Deparser {
       case 5:
         {
           // AEXPR_OF
-          const op = node.name[0].String.str === '=' ? 'IS OF' : 'IS NOT OF';
+          var op = node.name[0].String.str === '=' ? 'IS OF' : 'IS NOT OF';
           return (0, _util.format)('%s %s (%s)', this.deparse(node.lexpr), op, this.list(node.rexpr));
         }
 
       case 6:
         {
           // AEXPR_IN
-          const operator = node.name[0].String.str === '=' ? 'IN' : 'NOT IN';
+          var _operator = node.name[0].String.str === '=' ? 'IN' : 'NOT IN';
 
-          return (0, _util.format)('%s %s (%s)', this.deparse(node.lexpr), operator, this.list(node.rexpr));
+          return (0, _util.format)('%s %s (%s)', this.deparse(node.lexpr), _operator, this.list(node.rexpr));
         }
 
       case 7:
@@ -296,12 +312,12 @@ class Deparser {
       default:
         return fail('A_Expr', node);
     }
-  }
+  };
 
-  ['Alias'](node, context) {
-    const name = node.aliasname;
+  Deparser.prototype['Alias'] = function Alias(node, context) {
+    var name = node.aliasname;
 
-    const output = ['AS'];
+    var output = ['AS'];
 
     if (node.colnames) {
       output.push(name + parens(this.list(node.colnames)));
@@ -310,30 +326,30 @@ class Deparser {
     }
 
     return output.join(' ');
-  }
+  };
 
-  ['A_ArrayExpr'](node) {
+  Deparser.prototype['A_ArrayExpr'] = function A_ArrayExpr(node) {
     return (0, _util.format)('ARRAY[%s]', this.list(node.elements));
-  }
+  };
 
-  ['A_Const'](node, context) {
+  Deparser.prototype['A_Const'] = function A_Const(node, context) {
     if (node.val.String) {
       return this.escape(this.deparse(node.val));
     }
 
     return this.deparse(node.val);
-  }
+  };
 
-  ['A_Indices'](node) {
+  Deparser.prototype['A_Indices'] = function A_Indices(node) {
     if (node.lidx) {
       return (0, _util.format)('[%s:%s]', this.deparse(node.lidx), this.deparse(node.uidx));
     }
 
     return (0, _util.format)('[%s]', this.deparse(node.uidx));
-  }
+  };
 
-  ['A_Indirection'](node) {
-    const output = [`(${ this.deparse(node.arg) })`];
+  Deparser.prototype['A_Indirection'] = function A_Indirection(node) {
+    var output = ['(' + this.deparse(node.arg) + ')'];
 
     // TODO(zhm) figure out the actual rules for when a '.' is needed
     //
@@ -342,31 +358,31 @@ class Deparser {
     // select c2[2].f2 from comptable
     // select c2.a[2].f2[1].f3[0].a1 from comptable
 
-    for (let i = 0; i < node.indirection.length; i++) {
-      const subnode = node.indirection[i];
+    for (var i = 0; i < node.indirection.length; i++) {
+      var subnode = node.indirection[i];
 
       if (subnode.String || subnode.A_Star) {
-        const value = subnode.A_Star ? '*' : this.quote(subnode.String.str);
+        var value = subnode.A_Star ? '*' : this.quote(subnode.String.str);
 
-        output.push(`.${ value }`);
+        output.push('.' + value);
       } else {
         output.push(this.deparse(subnode));
       }
     }
 
     return output.join('');
-  }
+  };
 
-  ['A_Star'](node, context) {
+  Deparser.prototype['A_Star'] = function A_Star(node, context) {
     return '*';
-  }
+  };
 
-  ['BitString'](node) {
-    const prefix = node.str[0];
-    return `${ prefix }'${ node.str.substring(1) }'`;
-  }
+  Deparser.prototype['BitString'] = function BitString(node) {
+    var prefix = node.str[0];
+    return prefix + '\'' + node.str.substring(1) + '\'';
+  };
 
-  ['BoolExpr'](node) {
+  Deparser.prototype['BoolExpr'] = function BoolExpr(node) {
     switch (node.boolop) {
       case 0:
         return parens(this.list(node.args, ' AND '));
@@ -377,28 +393,28 @@ class Deparser {
       default:
         return fail('BoolExpr', node);
     }
-  }
+  };
 
-  ['BooleanTest'](node) {
-    const output = [];
+  Deparser.prototype['BooleanTest'] = function BooleanTest(node) {
+    var output = [];
 
     output.push(this.deparse(node.arg));
 
-    const tests = ['IS TRUE', 'IS NOT TRUE', 'IS FALSE', 'IS NOT FALSE', 'IS UNKNOWN', 'IS NOT UNKNOWN'];
+    var tests = ['IS TRUE', 'IS NOT TRUE', 'IS FALSE', 'IS NOT FALSE', 'IS UNKNOWN', 'IS NOT UNKNOWN'];
 
     output.push(tests[node.booltesttype]);
 
     return output.join(' ');
-  }
+  };
 
-  ['CaseExpr'](node) {
-    const output = ['CASE'];
+  Deparser.prototype['CaseExpr'] = function CaseExpr(node) {
+    var output = ['CASE'];
 
     if (node.arg) {
       output.push(this.deparse(node.arg));
     }
 
-    for (let i = 0; i < node.args.length; i++) {
+    for (var i = 0; i < node.args.length; i++) {
       output.push(this.deparse(node.args[i]));
     }
 
@@ -410,14 +426,14 @@ class Deparser {
     output.push('END');
 
     return output.join(' ');
-  }
+  };
 
-  ['CoalesceExpr'](node) {
+  Deparser.prototype['CoalesceExpr'] = function CoalesceExpr(node) {
     return (0, _util.format)('COALESCE(%s)', this.list(node.args));
-  }
+  };
 
-  ['CollateClause'](node) {
-    const output = [];
+  Deparser.prototype['CollateClause'] = function CollateClause(node) {
+    var output = [];
 
     if (node.arg) {
       output.push(this.deparse(node.arg));
@@ -430,10 +446,10 @@ class Deparser {
     }
 
     return output.join(' ');
-  }
+  };
 
-  ['ColumnDef'](node) {
-    const output = [this.quote(node.colname)];
+  Deparser.prototype['ColumnDef'] = function ColumnDef(node) {
+    var output = [this.quote(node.colname)];
 
     output.push(this.deparse(node.typeName));
 
@@ -447,22 +463,24 @@ class Deparser {
     }
 
     return _lodash2.default.compact(output).join(' ');
-  }
+  };
 
-  ['ColumnRef'](node) {
-    const fields = node.fields.map(field => {
+  Deparser.prototype['ColumnRef'] = function ColumnRef(node) {
+    var _this5 = this;
+
+    var fields = node.fields.map(function (field) {
       if (field.String) {
-        return this.quote(this.deparse(field));
+        return _this5.quote(_this5.deparse(field));
       }
 
-      return this.deparse(field);
+      return _this5.deparse(field);
     });
 
     return fields.join('.');
-  }
+  };
 
-  ['CommonTableExpr'](node) {
-    const output = [];
+  Deparser.prototype['CommonTableExpr'] = function CommonTableExpr(node) {
+    var output = [];
 
     output.push(node.ctename);
 
@@ -473,25 +491,27 @@ class Deparser {
     output.push((0, _util.format)('AS (%s)', this.deparse(node.ctequery)));
 
     return output.join(' ');
-  }
+  };
 
-  ['Float'](node) {
+  Deparser.prototype['Float'] = function Float(node) {
     // wrap negative numbers in parens, SELECT (-2147483648)::int4 * (-1)::int4
     if (node.str[0] === '-') {
-      return `(${ node.str })`;
+      return '(' + node.str + ')';
     }
 
     return node.str;
-  }
+  };
 
-  ['FuncCall'](node, context) {
-    const output = [];
+  Deparser.prototype['FuncCall'] = function FuncCall(node, context) {
+    var _this6 = this;
 
-    let params = [];
+    var output = [];
+
+    var params = [];
 
     if (node.args) {
-      params = node.args.map(item => {
-        return this.deparse(item);
+      params = node.args.map(function (item) {
+        return _this6.deparse(item);
       });
     }
 
@@ -500,18 +520,18 @@ class Deparser {
       params.push('*');
     }
 
-    const name = this.list(node.funcname, '.');
+    var name = this.list(node.funcname, '.');
 
-    const order = [];
+    var order = [];
 
-    const withinGroup = node.agg_within_group;
+    var withinGroup = node.agg_within_group;
 
     if (node.agg_order) {
       order.push('ORDER BY');
       order.push(this.list(node.agg_order, ', '));
     }
 
-    const call = [];
+    var call = [];
 
     call.push(name + '(');
 
@@ -550,13 +570,13 @@ class Deparser {
     }
 
     return output.join(' ');
-  }
+  };
 
-  ['GroupingFunc'](node) {
+  Deparser.prototype['GroupingFunc'] = function GroupingFunc(node) {
     return 'GROUPING(' + this.list(node.args) + ')';
-  }
+  };
 
-  ['GroupingSet'](node) {
+  Deparser.prototype['GroupingSet'] = function GroupingSet(node) {
     switch (node.kind) {
       case 0:
         // GROUPING_SET_EMPTY
@@ -581,22 +601,22 @@ class Deparser {
       default:
         return fail('GroupingSet', node);
     }
-  }
+  };
 
-  ['Integer'](node) {
+  Deparser.prototype['Integer'] = function Integer(node) {
     if (node.ival < 0) {
-      return `(${ node.ival })`;
+      return '(' + node.ival + ')';
     }
 
     return node.ival.toString();
-  }
+  };
 
-  ['IntoClause'](node) {
+  Deparser.prototype['IntoClause'] = function IntoClause(node) {
     return this.deparse(node.rel);
-  }
+  };
 
-  ['JoinExpr'](node, context) {
-    const output = [];
+  Deparser.prototype['JoinExpr'] = function JoinExpr(node, context) {
+    var output = [];
 
     output.push(this.deparse(node.larg));
 
@@ -604,7 +624,7 @@ class Deparser {
       output.push('NATURAL');
     }
 
-    let join = null;
+    var join = null;
 
     switch (true) {
       case node.jointype === 0 && node.quals != null:
@@ -642,36 +662,36 @@ class Deparser {
       // wrap nested join expressions in parens to make the following symmetric:
       // select * from int8_tbl x cross join (int4_tbl x cross join lateral (select x.f1) ss)
       if (node.rarg.JoinExpr != null && !(node.rarg.JoinExpr.alias != null)) {
-        output.push(`(${ this.deparse(node.rarg) })`);
+        output.push('(' + this.deparse(node.rarg) + ')');
       } else {
         output.push(this.deparse(node.rarg));
       }
     }
 
     if (node.quals) {
-      output.push(`ON ${ this.deparse(node.quals) }`);
+      output.push('ON ' + this.deparse(node.quals));
     }
 
     if (node.usingClause) {
-      const using = this.quote(this.deparseNodes(node.usingClause)).join(', ');
+      var using = this.quote(this.deparseNodes(node.usingClause)).join(', ');
 
-      output.push(`USING (${ using })`);
+      output.push('USING (' + using + ')');
     }
 
-    const wrapped = node.rarg.JoinExpr != null || node.alias ? '(' + output.join(' ') + ')' : output.join(' ');
+    var wrapped = node.rarg.JoinExpr != null || node.alias ? '(' + output.join(' ') + ')' : output.join(' ');
 
     if (node.alias) {
       return wrapped + ' ' + this.deparse(node.alias);
     }
 
     return wrapped;
-  }
+  };
 
-  ['LockingClause'](node) {
-    const strengths = ['NONE', // LCS_NONE
+  Deparser.prototype['LockingClause'] = function LockingClause(node) {
+    var strengths = ['NONE', // LCS_NONE
     'FOR KEY SHARE', 'FOR SHARE', 'FOR NO KEY UPDATE', 'FOR UPDATE'];
 
-    const output = [];
+    var output = [];
 
     output.push(strengths[node.strength]);
 
@@ -681,10 +701,10 @@ class Deparser {
     }
 
     return output.join(' ');
-  }
+  };
 
-  ['MinMaxExpr'](node) {
-    const output = [];
+  Deparser.prototype['MinMaxExpr'] = function MinMaxExpr(node) {
+    var output = [];
 
     if (node.op === 0) {
       output.push('GREATEST');
@@ -695,24 +715,24 @@ class Deparser {
     output.push(parens(this.list(node.args)));
 
     return output.join('');
-  }
+  };
 
-  ['NamedArgExpr'](node) {
-    const output = [];
+  Deparser.prototype['NamedArgExpr'] = function NamedArgExpr(node) {
+    var output = [];
 
     output.push(node.name);
     output.push(':=');
     output.push(this.deparse(node.arg));
 
     return output.join(' ');
-  }
+  };
 
-  ['Null'](node) {
+  Deparser.prototype['Null'] = function Null(node) {
     return 'NULL';
-  }
+  };
 
-  ['NullTest'](node) {
-    const output = [this.deparse(node.arg)];
+  Deparser.prototype['NullTest'] = function NullTest(node) {
+    var output = [this.deparse(node.arg)];
 
     if (node.nulltesttype === 0) {
       output.push('IS NULL');
@@ -721,27 +741,27 @@ class Deparser {
     }
 
     return output.join(' ');
-  }
+  };
 
-  ['ParamRef'](node) {
+  Deparser.prototype['ParamRef'] = function ParamRef(node) {
     if (node.number >= 0) {
       return ['$', node.number].join('');
     }
     return '?';
-  }
+  };
 
-  ['RangeFunction'](node) {
-    const output = [];
+  Deparser.prototype['RangeFunction'] = function RangeFunction(node) {
+    var output = [];
 
     if (node.lateral) {
       output.push('LATERAL');
     }
 
-    const funcs = [];
+    var funcs = [];
 
-    for (let i = 0; i < node.functions.length; i++) {
-      const funcCall = node.functions[i];
-      const call = [this.deparse(funcCall[0])];
+    for (var i = 0; i < node.functions.length; i++) {
+      var funcCall = node.functions[i];
+      var call = [this.deparse(funcCall[0])];
 
       if (funcCall[1] && funcCall[1].length) {
         call.push((0, _util.format)('AS (%s)', this.list(funcCall[1])));
@@ -750,10 +770,10 @@ class Deparser {
       funcs.push(call.join(' '));
     }
 
-    const calls = funcs.join(', ');
+    var calls = funcs.join(', ');
 
     if (node.is_rowsfrom) {
-      output.push(`ROWS FROM (${ calls })`);
+      output.push('ROWS FROM (' + calls + ')');
     } else {
       output.push(calls);
     }
@@ -767,20 +787,20 @@ class Deparser {
     }
 
     if (node.coldeflist) {
-      const defList = this.list(node.coldeflist);
+      var defList = this.list(node.coldeflist);
 
       if (!node.alias) {
-        output.push(` AS (${ defList })`);
+        output.push(' AS (' + defList + ')');
       } else {
-        output.push(`(${ defList })`);
+        output.push('(' + defList + ')');
       }
     }
 
     return output.join(' ');
-  }
+  };
 
-  ['RangeSubselect'](node, context) {
-    let output = '';
+  Deparser.prototype['RangeSubselect'] = function RangeSubselect(node, context) {
+    var output = '';
 
     if (node.lateral) {
       output += 'LATERAL ';
@@ -793,10 +813,10 @@ class Deparser {
     }
 
     return output;
-  }
+  };
 
-  ['RangeTableSample'](node) {
-    const output = [];
+  Deparser.prototype['RangeTableSample'] = function RangeTableSample(node) {
+    var output = [];
 
     output.push(this.deparse(node.relation));
     output.push('TABLESAMPLE');
@@ -811,10 +831,10 @@ class Deparser {
     }
 
     return output.join(' ');
-  }
+  };
 
-  ['RangeVar'](node, context) {
-    const output = [];
+  Deparser.prototype['RangeVar'] = function RangeVar(node, context) {
+    var output = [];
 
     if (node.inhOpt === 0) {
       output.push('ONLY');
@@ -840,9 +860,9 @@ class Deparser {
     }
 
     return output.join(' ');
-  }
+  };
 
-  ['ResTarget'](node, context) {
+  Deparser.prototype['ResTarget'] = function ResTarget(node, context) {
     if (context === 'select') {
       return compact([this.deparse(node.val), this.quote(node.name)]).join(' AS ');
     } else if (context === 'update') {
@@ -852,18 +872,20 @@ class Deparser {
     }
 
     return fail('ResTarget', node);
-  }
+  };
 
-  ['RowExpr'](node) {
+  Deparser.prototype['RowExpr'] = function RowExpr(node) {
     if (node.row_format === 2) {
       return parens(this.list(node.args));
     }
 
     return (0, _util.format)('ROW(%s)', this.list(node.args));
-  }
+  };
 
-  ['SelectStmt'](node, context) {
-    const output = [];
+  Deparser.prototype['SelectStmt'] = function SelectStmt(node, context) {
+    var _this7 = this;
+
+    var output = [];
 
     if (node.withClause) {
       output.push(this.deparse(node.withClause));
@@ -877,7 +899,7 @@ class Deparser {
     } else {
       output.push(parens(this.deparse(node.larg)));
 
-      const sets = ['NONE', 'UNION', 'INTERSECT', 'EXCEPT'];
+      var sets = ['NONE', 'UNION', 'INTERSECT', 'EXCEPT'];
 
       output.push(sets[node.op]);
 
@@ -892,16 +914,20 @@ class Deparser {
       if (node.distinctClause[0] != null) {
         output.push('DISTINCT ON');
 
-        const clause = node.distinctClause.map(e => this.deparse(e, 'select')).join(',\n');
+        var clause = node.distinctClause.map(function (e) {
+          return _this7.deparse(e, 'select');
+        }).join(',\n');
 
-        output.push(`(${ clause })`);
+        output.push('(' + clause + ')');
       } else {
         output.push('DISTINCT');
       }
     }
 
     if (node.targetList) {
-      output.push(indent(node.targetList.map(e => this.deparse(e, 'select')).join(',\n')));
+      output.push(indent(node.targetList.map(function (e) {
+        return _this7.deparse(e, 'select');
+      }).join(',\n')));
     }
 
     if (node.intoClause) {
@@ -911,7 +937,9 @@ class Deparser {
 
     if (node.fromClause) {
       output.push('FROM');
-      output.push(indent(node.fromClause.map(e => this.deparse(e, 'from')).join(',\n')));
+      output.push(indent(node.fromClause.map(function (e) {
+        return _this7.deparse(e, 'from');
+      }).join(',\n')));
     }
 
     if (node.whereClause) {
@@ -922,8 +950,10 @@ class Deparser {
     if (node.valuesLists) {
       output.push('VALUES');
 
-      const lists = node.valuesLists.map(list => {
-        return `(${ list.map(v => this.deparse(v)).join(', ') })`;
+      var lists = node.valuesLists.map(function (list) {
+        return '(' + list.map(function (v) {
+          return _this7.deparse(v);
+        }).join(', ') + ')';
       });
 
       output.push(lists.join(', '));
@@ -931,7 +961,9 @@ class Deparser {
 
     if (node.groupClause) {
       output.push('GROUP BY');
-      output.push(indent(node.groupClause.map(e => this.deparse(e, 'group')).join(',\n')));
+      output.push(indent(node.groupClause.map(function (e) {
+        return _this7.deparse(e, 'group');
+      }).join(',\n')));
     }
 
     if (node.havingClause) {
@@ -942,11 +974,11 @@ class Deparser {
     if (node.windowClause) {
       output.push('WINDOW');
 
-      const windows = [];
+      var windows = [];
 
-      for (let i = 0; i < node.windowClause.length; i++) {
-        const w = node.windowClause[i];
-        const window = [];
+      for (var i = 0; i < node.windowClause.length; i++) {
+        var w = node.windowClause[i];
+        var window = [];
 
         if (w.WindowDef.name) {
           window.push(this.quote(w.WindowDef.name) + ' AS');
@@ -962,7 +994,9 @@ class Deparser {
 
     if (node.sortClause) {
       output.push('ORDER BY');
-      output.push(indent(node.sortClause.map(e => this.deparse(e, 'sort')).join(',\n')));
+      output.push(indent(node.sortClause.map(function (e) {
+        return _this7.deparse(e, 'sort');
+      }).join(',\n')));
     }
 
     if (node.limitCount) {
@@ -976,16 +1010,16 @@ class Deparser {
     }
 
     if (node.lockingClause) {
-      node.lockingClause.forEach(item => {
-        return output.push(this.deparse(item));
+      node.lockingClause.forEach(function (item) {
+        return output.push(_this7.deparse(item));
       });
     }
 
     return output.join(' ');
-  }
+  };
 
-  ['SortBy'](node) {
-    const output = [];
+  Deparser.prototype['SortBy'] = function SortBy(node) {
+    var output = [];
 
     output.push(this.deparse(node.node));
 
@@ -998,7 +1032,7 @@ class Deparser {
     }
 
     if (node.sortby_dir === 3) {
-      output.push(`USING ${ this.deparseNodes(node.useOp) }`);
+      output.push('USING ' + this.deparseNodes(node.useOp));
     }
 
     if (node.sortby_nulls === 1) {
@@ -1010,13 +1044,13 @@ class Deparser {
     }
 
     return output.join(' ');
-  }
+  };
 
-  ['String'](node) {
+  Deparser.prototype['String'] = function String(node) {
     return node.str;
-  }
+  };
 
-  ['SubLink'](node) {
+  Deparser.prototype['SubLink'] = function SubLink(node) {
     switch (true) {
       case node.subLinkType === 0:
         return (0, _util.format)('EXISTS (%s)', this.deparse(node.subselect));
@@ -1040,32 +1074,34 @@ class Deparser {
       default:
         return fail('SubLink', node);
     }
-  }
+  };
 
-  ['TypeCast'](node) {
+  Deparser.prototype['TypeCast'] = function TypeCast(node) {
     return this.deparse(node.arg) + '::' + this.deparse(node.typeName);
-  }
+  };
 
-  ['TypeName'](node) {
+  Deparser.prototype['TypeName'] = function TypeName(node) {
+    var _this8 = this;
+
     if (_lodash2.default.last(node.names).String.str === 'interval') {
       return this.deparseInterval(node);
     }
 
-    const output = [];
+    var output = [];
 
     if (node.setof) {
       output.push('SETOF');
     }
 
-    let args = null;
+    var args = null;
 
     if (node.typmods != null) {
-      args = node.typmods.map(item => {
-        return this.deparse(item);
+      args = node.typmods.map(function (item) {
+        return _this8.deparse(item);
       });
     }
 
-    const type = [];
+    var type = [];
 
     type.push(this.type(node.names, args && args.join(', ')));
 
@@ -1076,20 +1112,22 @@ class Deparser {
     output.push(type.join(''));
 
     return output.join(' ');
-  }
+  };
 
-  ['CaseWhen'](node) {
-    const output = ['WHEN'];
+  Deparser.prototype['CaseWhen'] = function CaseWhen(node) {
+    var output = ['WHEN'];
 
     output.push(this.deparse(node.expr));
     output.push('THEN');
     output.push(this.deparse(node.result));
 
     return output.join(' ');
-  }
+  };
 
-  ['WindowDef'](node, context) {
-    const output = [];
+  Deparser.prototype['WindowDef'] = function WindowDef(node, context) {
+    var _this9 = this;
+
+    var output = [];
 
     if (context !== 'window') {
       if (node.name) {
@@ -1097,22 +1135,24 @@ class Deparser {
       }
     }
 
-    const empty = !(node.partitionClause != null) && !(node.orderClause != null);
+    var empty = !(node.partitionClause != null) && !(node.orderClause != null);
 
-    const frameOptions = this.deparseFrameOptions(node.frameOptions, node.refname, node.startOffset, node.endOffset);
+    var frameOptions = this.deparseFrameOptions(node.frameOptions, node.refname, node.startOffset, node.endOffset);
 
     if (empty && context !== 'window' && !(node.name != null) && frameOptions.length === 0) {
       return '()';
     }
 
-    const windowParts = [];
+    var windowParts = [];
 
-    let useParens = false;
+    var useParens = false;
 
     if (node.partitionClause) {
-      const partition = ['PARTITION BY'];
+      var partition = ['PARTITION BY'];
 
-      const clause = node.partitionClause.map(item => this.deparse(item));
+      var clause = node.partitionClause.map(function (item) {
+        return _this9.deparse(item);
+      });
 
       partition.push(clause.join(', '));
 
@@ -1123,8 +1163,8 @@ class Deparser {
     if (node.orderClause) {
       windowParts.push('ORDER BY');
 
-      const orders = node.orderClause.map(item => {
-        return this.deparse(item);
+      var orders = node.orderClause.map(function (item) {
+        return _this9.deparse(item);
       });
 
       windowParts.push(orders.join(', '));
@@ -1142,10 +1182,10 @@ class Deparser {
     }
 
     return output.join(' ') + windowParts.join(' ');
-  }
+  };
 
-  ['WithClause'](node) {
-    const output = ['WITH'];
+  Deparser.prototype['WithClause'] = function WithClause(node) {
+    var output = ['WITH'];
 
     if (node.recursive) {
       output.push('RECURSIVE');
@@ -1154,29 +1194,29 @@ class Deparser {
     output.push(this.list(node.ctes));
 
     return output.join(' ');
-  }
+  };
 
-  deparseFrameOptions(options, refName, startOffset, endOffset) {
-    const FRAMEOPTION_NONDEFAULT = 0x00001; // any specified?
-    const FRAMEOPTION_RANGE = 0x00002; // RANGE behavior
-    const FRAMEOPTION_ROWS = 0x00004; // ROWS behavior
-    const FRAMEOPTION_BETWEEN = 0x00008; // BETWEEN given?
-    const FRAMEOPTION_START_UNBOUNDED_PRECEDING = 0x00010; // start is U. P.
-    const FRAMEOPTION_END_UNBOUNDED_PRECEDING = 0x00020; // (disallowed)
-    const FRAMEOPTION_START_UNBOUNDED_FOLLOWING = 0x00040; // (disallowed)
-    const FRAMEOPTION_END_UNBOUNDED_FOLLOWING = 0x00080; // end is U. F.
-    const FRAMEOPTION_START_CURRENT_ROW = 0x00100; // start is C. R.
-    const FRAMEOPTION_END_CURRENT_ROW = 0x00200; // end is C. R.
-    const FRAMEOPTION_START_VALUE_PRECEDING = 0x00400; // start is V. P.
-    const FRAMEOPTION_END_VALUE_PRECEDING = 0x00800; // end is V. P.
-    const FRAMEOPTION_START_VALUE_FOLLOWING = 0x01000; // start is V. F.
-    const FRAMEOPTION_END_VALUE_FOLLOWING = 0x02000; // end is V. F.
+  Deparser.prototype.deparseFrameOptions = function deparseFrameOptions(options, refName, startOffset, endOffset) {
+    var FRAMEOPTION_NONDEFAULT = 0x00001; // any specified?
+    var FRAMEOPTION_RANGE = 0x00002; // RANGE behavior
+    var FRAMEOPTION_ROWS = 0x00004; // ROWS behavior
+    var FRAMEOPTION_BETWEEN = 0x00008; // BETWEEN given?
+    var FRAMEOPTION_START_UNBOUNDED_PRECEDING = 0x00010; // start is U. P.
+    var FRAMEOPTION_END_UNBOUNDED_PRECEDING = 0x00020; // (disallowed)
+    var FRAMEOPTION_START_UNBOUNDED_FOLLOWING = 0x00040; // (disallowed)
+    var FRAMEOPTION_END_UNBOUNDED_FOLLOWING = 0x00080; // end is U. F.
+    var FRAMEOPTION_START_CURRENT_ROW = 0x00100; // start is C. R.
+    var FRAMEOPTION_END_CURRENT_ROW = 0x00200; // end is C. R.
+    var FRAMEOPTION_START_VALUE_PRECEDING = 0x00400; // start is V. P.
+    var FRAMEOPTION_END_VALUE_PRECEDING = 0x00800; // end is V. P.
+    var FRAMEOPTION_START_VALUE_FOLLOWING = 0x01000; // start is V. F.
+    var FRAMEOPTION_END_VALUE_FOLLOWING = 0x02000; // end is V. F.
 
     if (!(options & FRAMEOPTION_NONDEFAULT)) {
       return '';
     }
 
-    const output = [];
+    var output = [];
 
     if (refName != null) {
       output.push(refName);
@@ -1190,7 +1230,7 @@ class Deparser {
       output.push('ROWS');
     }
 
-    const between = options & FRAMEOPTION_BETWEEN;
+    var between = options & FRAMEOPTION_BETWEEN;
 
     if (between) {
       output.push('BETWEEN');
@@ -1241,40 +1281,46 @@ class Deparser {
     }
 
     return output.join(' ');
-  }
+  };
 
-  deparseInterval(node) {
-    const type = ['interval'];
+  Deparser.prototype.deparseInterval = function deparseInterval(node) {
+    var _this10 = this;
+
+    var type = ['interval'];
 
     if (node.arrayBounds != null) {
       type.push('[]');
     }
 
     if (node.typmods) {
-      const typmods = node.typmods.map(item => this.deparse(item));
-
-      let intervals = this.interval(typmods[0]);
-
-      // SELECT interval(0) '1 day 01:23:45.6789'
-      if (node.typmods[0] && node.typmods[0].A_Const && node.typmods[0].A_Const.val.Integer.ival === 32767 && node.typmods[1] && node.typmods[1].A_Const != null) {
-        intervals = [`(${ node.typmods[1].A_Const.val.Integer.ival })`];
-      } else {
-        intervals = intervals.map(part => {
-          if (part === 'second' && typmods.length === 2) {
-            return 'second(' + _lodash2.default.last(typmods) + ')';
-          }
-
-          return part;
+      (function () {
+        var typmods = node.typmods.map(function (item) {
+          return _this10.deparse(item);
         });
-      }
 
-      type.push(intervals.join(' to '));
+        var intervals = _this10.interval(typmods[0]);
+
+        // SELECT interval(0) '1 day 01:23:45.6789'
+        if (node.typmods[0] && node.typmods[0].A_Const && node.typmods[0].A_Const.val.Integer.ival === 32767 && node.typmods[1] && node.typmods[1].A_Const != null) {
+          intervals = ['(' + node.typmods[1].A_Const.val.Integer.ival + ')'];
+        } else {
+          intervals = intervals.map(function (part) {
+            if (part === 'second' && typmods.length === 2) {
+              return 'second(' + _lodash2.default.last(typmods) + ')';
+            }
+
+            return part;
+          });
+        }
+
+        type.push(intervals.join(' to '));
+      })();
     }
 
     return type.join(' ');
-  }
+  };
 
-  interval(mask) {
+  Deparser.prototype.interval = function interval(mask) {
     // ported from https://github.com/lfittl/pg_query/blob/master/lib/pg_query/deparse/interval.rb
     if (this.MASKS == null) {
       this.MASKS = {
@@ -1336,7 +1382,10 @@ class Deparser {
     }
 
     return this.INTERVALS[mask.toString()];
-  }
-}
+  };
+
+  return Deparser;
+}();
+
 exports.default = Deparser;
 //# sourceMappingURL=index.js.map
