@@ -57,11 +57,11 @@ var Deparser = function () {
     }).join('\n\n');
   };
 
-  Deparser.prototype.deparseNodes = function deparseNodes(nodes) {
+  Deparser.prototype.deparseNodes = function deparseNodes(nodes, context) {
     var _this2 = this;
 
     return nodes.map(function (node) {
-      return _this2.deparse(node);
+      return _this2.deparse(node, context);
     });
   };
 
@@ -150,11 +150,9 @@ var Deparser = function () {
 
     var _names$map = names.map(function (name) {
       return _this4.deparse(name);
-    });
-
-    var catalog = _names$map[0];
-    var type = _names$map[1];
-
+    }),
+        catalog = _names$map[0],
+        type = _names$map[1];
 
     var mods = function mods(name, size) {
       if (size != null) {
@@ -334,10 +332,10 @@ var Deparser = function () {
 
   Deparser.prototype['A_Const'] = function A_Const(node, context) {
     if (node.val.String) {
-      return this.escape(this.deparse(node.val));
+      return this.escape(this.deparse(node.val, context));
     }
 
-    return this.deparse(node.val);
+    return this.deparse(node.val, context);
   };
 
   Deparser.prototype['A_Indices'] = function A_Indices(node) {
@@ -493,6 +491,20 @@ var Deparser = function () {
     return output.join(' ');
   };
 
+  Deparser.prototype['DefElem'] = function DefElem(node) {
+    if (node.defname === 'transaction_isolation') {
+      return (0, _util.format)('ISOLATION LEVEL %s', node.arg.A_Const.val.String.str.toUpperCase());
+    }
+
+    if (node.defname === 'transaction_read_only') {
+      return node.arg.A_Const.val.Integer.ival === 0 ? 'READ WRITE' : 'READ ONLY';
+    }
+
+    if (node.defname === 'transaction_deferrable') {
+      return node.arg.A_Const.val.Integer.ival === 0 ? 'NOT DEFERRABLE' : 'DEFERRABLE';
+    }
+  };
+
   Deparser.prototype['Float'] = function Float(node) {
     // wrap negative numbers in parens, SELECT (-2147483648)::int4 * (-1)::int4
     if (node.str[0] === '-') {
@@ -603,8 +615,8 @@ var Deparser = function () {
     }
   };
 
-  Deparser.prototype['Integer'] = function Integer(node) {
-    if (node.ival < 0) {
+  Deparser.prototype['Integer'] = function Integer(node, context) {
+    if (node.ival < 0 && context !== 'simple') {
       return '(' + node.ival + ')';
     }
 
@@ -1124,6 +1136,31 @@ var Deparser = function () {
     return output.join(' ');
   };
 
+  Deparser.prototype['VariableSetStmt'] = function VariableSetStmt(node) {
+    if (node.kind === 4) {
+      return (0, _util.format)('RESET %s', node.name);
+    }
+
+    if (node.kind === 3) {
+      var name = {
+        'TRANSACTION': 'TRANSACTION',
+        'SESSION CHARACTERISTICS': 'SESSION CHARACTERISTICS AS TRANSACTION'
+      }[node.name];
+
+      return (0, _util.format)('SET %s %s', name, this.deparseNodes(node.args, 'simple').join(', '));
+    }
+
+    if (node.kind === 1) {
+      return (0, _util.format)('SET %s TO DEFAULT', node.name);
+    }
+
+    return (0, _util.format)('SET %s%s = %s', node.is_local ? 'LOCAL ' : '', node.name, this.deparseNodes(node.args, 'simple').join(', '));
+  };
+
+  Deparser.prototype['VariableShowStmt'] = function VariableShowStmt(node) {
+    return (0, _util.format)('SHOW %s', node.name);
+  };
+
   Deparser.prototype['WindowDef'] = function WindowDef(node, context) {
     var _this9 = this;
 
@@ -1293,28 +1330,26 @@ var Deparser = function () {
     }
 
     if (node.typmods) {
-      (function () {
-        var typmods = node.typmods.map(function (item) {
-          return _this10.deparse(item);
+      var typmods = node.typmods.map(function (item) {
+        return _this10.deparse(item);
+      });
+
+      var intervals = this.interval(typmods[0]);
+
+      // SELECT interval(0) '1 day 01:23:45.6789'
+      if (node.typmods[0] && node.typmods[0].A_Const && node.typmods[0].A_Const.val.Integer.ival === 32767 && node.typmods[1] && node.typmods[1].A_Const != null) {
+        intervals = ['(' + node.typmods[1].A_Const.val.Integer.ival + ')'];
+      } else {
+        intervals = intervals.map(function (part) {
+          if (part === 'second' && typmods.length === 2) {
+            return 'second(' + _lodash2.default.last(typmods) + ')';
+          }
+
+          return part;
         });
+      }
 
-        var intervals = _this10.interval(typmods[0]);
-
-        // SELECT interval(0) '1 day 01:23:45.6789'
-        if (node.typmods[0] && node.typmods[0].A_Const && node.typmods[0].A_Const.val.Integer.ival === 32767 && node.typmods[1] && node.typmods[1].A_Const != null) {
-          intervals = ['(' + node.typmods[1].A_Const.val.Integer.ival + ')'];
-        } else {
-          intervals = intervals.map(function (part) {
-            if (part === 'second' && typmods.length === 2) {
-              return 'second(' + _lodash2.default.last(typmods) + ')';
-            }
-
-            return part;
-          });
-        }
-
-        type.push(intervals.join(' to '));
-      })();
+      type.push(intervals.join(' to '));
     }
 
     return type.join(' ');
